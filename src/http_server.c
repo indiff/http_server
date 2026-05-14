@@ -21,6 +21,8 @@
 //
 
 // TODO:
+// convert spaces inside <td> to &nbsp; or use CSS td {    white-space: pre;   } -https://www.voidtools.com/forum/viewtopic.php?p=79828#p79828
+// [HIGH] add HEAD requests
 // obfuscate the password with base64. (like the Everything Server)
 // add support for the date created column.
 // a simple path rewrite to hide roots, for example: c:\private\media => /media
@@ -398,8 +400,9 @@ static int http_server_items_per_page = HTTP_SERVER_DEFAULT_ITEMS_PER_PAGE;
 static int http_server_show_drive_labels;
 static everything_plugin_utf8_t *http_server_strings_filename = NULL;
 static everything_plugin_utf8_t *http_server_header = NULL;
-static int http_server_allow_query_access = 0; // is-open: online: runcount:
-static int http_server_allow_disk_access = 0; // content: and include-filelist:
+static int http_server_allow_query_access = 0; // is-open: online: runcount: is-running:
+static int http_server_allow_disk_access = 0; // content:
+static int http_server_allow_full_access = 0; // include-filelist:
 static int http_server_default_sort = HTTP_SERVER_SORT_DATE_MODIFIED;
 static int http_server_default_sort_ascending = 0;
 
@@ -1165,6 +1168,7 @@ __declspec( dllexport) void * EVERYTHING_PLUGIN_API everything_plugin_proc(DWORD
 			http_server_header = everything_plugin_get_setting_string(data,(const everything_plugin_utf8_t *)"header",http_server_header);
 			http_server_allow_query_access = everything_plugin_get_setting_int(data,(const everything_plugin_utf8_t *)"allow_query_access",http_server_allow_query_access);
 			http_server_allow_disk_access = everything_plugin_get_setting_int(data,(const everything_plugin_utf8_t *)"allow_disk_access",http_server_allow_disk_access);
+			http_server_allow_full_access = everything_plugin_get_setting_int(data,(const everything_plugin_utf8_t *)"allow_full_access",http_server_allow_full_access);
 			http_server_default_sort = everything_plugin_get_setting_int(data,(const everything_plugin_utf8_t *)"default_sort",http_server_default_sort);
 			http_server_default_sort_ascending = everything_plugin_get_setting_int(data,(const everything_plugin_utf8_t *)"default_sort_ascending",http_server_default_sort_ascending);
 
@@ -1288,6 +1292,7 @@ __declspec( dllexport) void * EVERYTHING_PLUGIN_API everything_plugin_proc(DWORD
 			everything_plugin_set_setting_string(data,(const everything_plugin_utf8_t *)"header",http_server_header);
 			everything_plugin_set_setting_int(data,(const everything_plugin_utf8_t *)"allow_query_access",http_server_allow_query_access);
 			everything_plugin_set_setting_int(data,(const everything_plugin_utf8_t *)"allow_disk_access",http_server_allow_disk_access);
+			everything_plugin_set_setting_int(data,(const everything_plugin_utf8_t *)"allow_full_access",http_server_allow_full_access);
 			everything_plugin_set_setting_int(data,(const everything_plugin_utf8_t *)"default_sort",http_server_default_sort);
 			everything_plugin_set_setting_int(data,(const everything_plugin_utf8_t *)"default_sort_ascending",http_server_default_sort_ascending);
 		
@@ -5451,7 +5456,7 @@ static void http_server_start_next_query(void)
 				0,
 				http_server_allow_query_access,
 				http_server_allow_disk_access,
-				http_server_allow_disk_access,
+				http_server_allow_full_access,
 				0,
 				EVERYTHING_PLUGIN_CONFIG_SIZE_STANDARD_JEDEC,
 				0);
