@@ -53,7 +53,7 @@
 				Optimization="0"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="VERSION_DEBUG;SETUP_DEBUG"
+				PreprocessorDefinitions="VERSION_DEBUG;SETUP_DEBUG;SETUP_X86"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
@@ -248,6 +248,7 @@
 				OmitFramePointers="false"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="SETUP_X86"
 				StringPooling="true"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
@@ -277,12 +278,11 @@
 				IgnoreImportLibrary="false"
 				LinkLibraryDependencies="true"
 				AdditionalOptions="/DYNAMICBASE /NXCOMPAT"
-				AdditionalDependencies="../minicrt/minicrt.lib UnicoWS.lib  Psapi.lib"
+				AdditionalDependencies="UnicoWS.lib  Psapi.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)/HTTP-Server-Setup.exe"
 				LinkIncremental="1"
 				AdditionalManifestDependencies=""
-				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				SubSystem="2"
@@ -364,7 +364,6 @@
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="0"
@@ -394,7 +393,6 @@
 				OutputFile="$(OutDir)/HTTP-Server.x64-Setup.exe"
 				LinkIncremental="1"
 				AdditionalManifestDependencies=""
-				IgnoreAllDefaultLibraries="true"
 				ModuleDefinitionFile=" "
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -440,26 +438,6 @@
 		<Filter
 			Name="src"
 			>
-			<File
-				RelativePath="..\src\chkstk.obj"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="..\src\setup.c"
 				>
