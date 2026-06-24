@@ -21,7 +21,8 @@
 //
 
 // TODO:
-// convert spaces inside <td> to &nbsp; or use CSS td {    white-space: pre;   } -https://www.voidtools.com/forum/viewtopic.php?p=79828#p79828
+// [HIGH] avoid using a everything_plugin_output_stream_t for the log file and just write directly to the output file. -users want to see up-to-date entries in the log on disk. -added flushing, needs testing.
+// [HIGH] convert spaces inside <td> to &nbsp; or use CSS td {    white-space: pre;   } -https://www.voidtools.com/forum/viewtopic.php?p=79828#p79828 -added needs testing.
 // [HIGH] add HEAD requests
 // obfuscate the password with base64. (like the Everything Server)
 // add support for the date created column.
@@ -424,6 +425,9 @@ static const char http_server_main_css[] =
 	"td, tr, img {\r\n"
 	"	border-width: 0px;\r\n"
 	"	vertical-align:middle;\r\n"
+	"}\r\n"
+	"td {\r\n"
+	"	white-space: pre;\r\n"
 	"}\r\n"
 	"\r\n"
 	"a {\r\n"
@@ -883,6 +887,7 @@ static EVERYTHING_PLUGIN_QWORD (EVERYTHING_PLUGIN_API *everything_plugin_os_get_
 static void (EVERYTHING_PLUGIN_API *everything_plugin_version_get_text)(everything_plugin_utf8_buf_t *cbuf);
 static void (EVERYTHING_PLUGIN_API *everything_plugin_utf8_buf_format_filetime)(everything_plugin_utf8_buf_t *cbuf,EVERYTHING_PLUGIN_QWORD ft);
 static void (EVERYTHING_PLUGIN_API *everything_plugin_output_stream_write_printf)(everything_plugin_output_stream_t *output_stream,const everything_plugin_utf8_t *format,...);
+static int (EVERYTHING_PLUGIN_API *everything_plugin_output_stream_flush)(everything_plugin_output_stream_t *output_stream);
 static void (EVERYTHING_PLUGIN_API *everything_plugin_utf8_buf_format_peername)(everything_plugin_utf8_buf_t *cbuf,EVERYTHING_PLUGIN_OS_WINSOCK_SOCKET socket_handle);
 static int (EVERYTHING_PLUGIN_API *everything_plugin_unicode_hex_char)(int value);
 static void (EVERYTHING_PLUGIN_API *everything_plugin_utf8_buf_grow_length)(everything_plugin_utf8_buf_t *cbuf,uintptr_t length_in_bytes);
@@ -1119,6 +1124,9 @@ __declspec( dllexport) void * EVERYTHING_PLUGIN_API everything_plugin_proc(DWORD
 					*http_server_everything_plugin_proc_array[index].proc_address_ptr = proc;
 				}
 			}
+			
+			// optional procs:
+			everything_plugin_output_stream_flush = ((everything_plugin_get_proc_address_t)data)("output_stream_flush");
 		
 			http_server_title_format = everything_plugin_utf8_string_alloc_utf8_string((const everything_plugin_utf8_t *)"");
 			http_server_username = everything_plugin_utf8_string_alloc_utf8_string((const everything_plugin_utf8_t *)"");
@@ -3289,6 +3297,11 @@ void http_server_log(http_server_client_t *c,const everything_plugin_utf8_t *for
 				}
 				
 				everything_plugin_output_stream_write_printf(_http_server->log_file,(const everything_plugin_utf8_t *)"%s",message_cbuf.buf);
+
+				if (everything_plugin_output_stream_flush)
+				{
+					everything_plugin_output_stream_flush(_http_server->log_file);
+				}
 
 				everything_plugin_utf8_buf_kill(&date_time_cbuf);
 				everything_plugin_utf8_buf_kill(&version_cbuf);
