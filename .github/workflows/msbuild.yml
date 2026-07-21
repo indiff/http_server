@@ -67,7 +67,7 @@ jobs:
           exit 1
         }
         # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
-        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmssZ")
+        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
         $zipName   = "http_server-$timestamp.zip"
         Compress-Archive -Path $dll -DestinationPath $zipName
         Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
@@ -93,7 +93,9 @@ jobs:
       shell: pwsh
       run: |
         # gh release list returns releases newest-first by default; no extra sorting needed.
-        # Use a high limit so the cleanup works even if many releases exist.
+        # Limit is 1000 — sufficient for the vast majority of repositories.
+        # If the release count ever exceeds 1000, older releases will not be cleaned up
+        # automatically and will need to be removed manually.
         $releases = gh release list --limit 1000 --json tagName,createdAt `
           | ConvertFrom-Json
 
