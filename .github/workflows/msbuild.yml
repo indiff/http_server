@@ -69,8 +69,8 @@ jobs:
         }
         # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
         # $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
-        $timestamp1 = (Get-Date).AddHours(8).ToString("yyyyMMddTHHmmss")
-        $timestamp = (Get-Date).ToString("yyyyMMddTHHmmss")
+        $timestamp = (Get-Date).AddHours(8).ToString("yyyyMMddTHHmmss")
+        $timestamp1 = (Get-Date).ToString("yyyyMMddTHHmmss")
         Write-Host "timestamp1 $timestamp1 (timestamp: $timestamp)"
         $zipName   = "http_server-$timestamp.zip"
         # Compress-Archive -Path $dll -DestinationPath $zipName -CompressionLevel Optimal
