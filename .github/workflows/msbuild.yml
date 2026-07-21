@@ -64,8 +64,8 @@ jobs:
           Write-Error "Expected DLL not found: $dll"
           exit 1
         }
-        # Use a deterministic UTC timestamp as the release tag (filesystem-safe)
-        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMdd-HHmmss")
+        # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
+        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmssZ")
         $zipName   = "http_server-$timestamp.zip"
         Compress-Archive -Path $dll -DestinationPath $zipName
         Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
@@ -90,8 +90,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: pwsh
       run: |
-        # List all releases sorted by creation date (newest first), keep the first 10
-        $releases = gh release list --limit 100 --json tagName,createdAt `
+        # List all releases sorted by creation date (newest first), keep the first 10.
+        # Use a high limit so the cleanup works even if many releases exist.
+        $releases = gh release list --limit 1000 --json tagName,createdAt `
           | ConvertFrom-Json `
           | Sort-Object { [datetime]$_.createdAt } -Descending
 
