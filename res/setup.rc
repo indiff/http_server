@@ -68,10 +68,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "voidtools"
-            VALUE "FileDescription", "Everything HTTP Server"
+            VALUE "FileDescription", "Everything HTTP Server modify by indiff"
             VALUE "FileVersion", PLUGINVERSION
             VALUE "InternalName", "Everything HTTP Server"
-            VALUE "LegalCopyright", _PLUGINVERSIONSTR(Copyright © PLUGINYEAR voidtools)
+            VALUE "LegalCopyright", _PLUGINVERSIONSTR(Copyright Â© PLUGINYEAR voidtools)
             VALUE "OriginalFilename", "http_server.dll"
             VALUE "ProductName", "Everything HTTP Server"
             VALUE "ProductVersion", PLUGINVERSION
