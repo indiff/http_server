@@ -19,7 +19,7 @@ env:
   # Expected output DLL path.
   # NOTE: The filename contains a space ("HTTP Server.dll") as set by the VS project;
   #       all usages must be quoted accordingly.
-  DLL_PATH: vs2019\x64\Release\HTTP Server.dll
+  DLL_PATH: .\vs2019\x64\Release\HTTP Server.dll
 
 # Needs write access to create/delete releases and upload assets.
 # No broader permissions are required.
@@ -55,6 +55,7 @@ jobs:
 
     # ----------------------------------------------------------------
     # Steps below run only on push to main (not on pull requests)
+    # vs2019\x64\Release\HTTP Server.dll
     # ----------------------------------------------------------------
 
     - name: Verify DLL and create ZIP artifact
@@ -69,7 +70,8 @@ jobs:
         # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
         $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
         $zipName   = "http_server-$timestamp.zip"
-        Compress-Archive -Path $dll -DestinationPath $zipName
+        # Compress-Archive -Path $dll -DestinationPath $zipName -CompressionLevel Optimal
+        "7z.exe" a -mx9 $zipName $dll
         Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
         Write-Output "ZIP_NAME=$zipName"         >> $env:GITHUB_ENV
         Write-Host "Created $zipName (tag: $timestamp)"
