@@ -71,7 +71,7 @@ jobs:
         $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
         $zipName   = "http_server-$timestamp.zip"
         # Compress-Archive -Path $dll -DestinationPath $zipName -CompressionLevel Optimal
-        "7z.exe" a -mx9 $zipName $dll
+        7z.exe a -tbzip2 -mx9 $zipName $dll
         Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
         Write-Output "ZIP_NAME=$zipName"         >> $env:GITHUB_ENV
         Write-Host "Created $zipName (tag: $timestamp)"
