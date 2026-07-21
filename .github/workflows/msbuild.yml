@@ -36,8 +36,11 @@ jobs:
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        cd vs2019
-        nuget restore ${{env.SOLUTION_FILE_PATH}}
+        # 64 位 Release DLL
+        nuget restore .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=x64
+        
+        # 32 位 Release DLL
+        # msbuild .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=Win32
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -53,6 +56,10 @@ jobs:
          sleep 5
          # ls x64\Release
          echo "Restart Explorer for TimeZone"
-         cd vs2019
-         msbuild ${{env.SOLUTION_FILE_PATH}} /m /p:UseSharedCompilation=true /p:RunCodeAnalysis=false /p:BuildInParallel=true /p:DebugType=None /p:Optimize=true /p:configuration="${{env.BUILD_CONFIGURATION}}" /p:platform="x64" /p:PlatformToolset="v145"
+         # msbuild ${{env.SOLUTION_FILE_PATH}} /m /p:UseSharedCompilation=true /p:RunCodeAnalysis=false /p:BuildInParallel=true /p:DebugType=None /p:Optimize=true /p:configuration="${{env.BUILD_CONFIGURATION}}" /p:platform="x64" /p:PlatformToolset="v145"
+         # 64 位 Release DLL
+         msbuild .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=x64
+        
+         # 32 位 Release DLL
+         #msbuild .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=Win32
 
