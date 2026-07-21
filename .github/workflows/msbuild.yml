@@ -68,10 +68,14 @@ jobs:
             exit 1
         }
         # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
-        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
+        # $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
+        $timestamp1 = (Get-Date).AddHours(8).ToString("yyyyMMddTHHmmss")
+        $timestamp = (Get-Date).ToString("yyyyMMddTHHmmss")
+        Write-Host "timestamp1 $timestamp1 (timestamp: $timestamp)"
         $zipName   = "http_server-$timestamp.zip"
         # Compress-Archive -Path $dll -DestinationPath $zipName -CompressionLevel Optimal
-        7z.exe a -tbzip2 -mx9 $zipName $dll
+        # 7z.exe a -tbzip2 -mx9 $zipName $dll
+        7z.exe a -tzip -mx9 $zipName $dll
         Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
         Write-Output "ZIP_NAME=$zipName"         >> $env:GITHUB_ENV
         Write-Host "Created $zipName (tag: $timestamp)"
