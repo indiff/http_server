@@ -1,7 +1,6 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Build and publish workflow for http_server.
+# - Builds x64 Release on every push/PR targeting main.
+# - Creates a GitHub Release and uploads the DLL ZIP only on pushes to main.
 
 name: MSBuild
 
@@ -12,55 +11,98 @@ on:
     branches: [ "main" ]
 
 env:
-  # Path to the solution file relative to the root of the project.
+  # Solution file path (relative to repository root)
   SOLUTION_FILE_PATH: .\vs2019\http_server.sln
-
-  # Configuration type to build.
-  # You can convert this to a build matrix if you need coverage of multiple configuration types.
-  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  # Build settings
   BUILD_CONFIGURATION: Release
+  BUILD_PLATFORM: x64
+  # Expected output DLL path.
+  # NOTE: The filename contains a space ("HTTP Server.dll") as set by the VS project;
+  #       all usages must be quoted accordingly.
+  DLL_PATH: vs2019\x64\Release\HTTP Server.dll
 
+# Needs write access to create/delete releases and upload assets.
+# No broader permissions are required.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v3
+      uses: microsoft/setup-msbuild@v2
 
     - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: |
-        # 64 位 Release DLL
-        nuget restore ${{env.SOLUTION_FILE_PATH}} 
-        # nuget restore .\setup\vs2019\http_server.setup.sln
-        # setup/vs2019/http_server.setup
-        # 32 位 Release DLL
-        # msbuild .\vs2019\http_server.sln
+      run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+    - name: Build x64 Release
+      # Build the solution for x64 Release; output lands at vs2019\x64\Release\
       run: |
-        # msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
-        # 设置中国时区时间，生成的文件的时间是否也是对应时区时间
-         Set-TimeZone -Id "China Standard Time"
-         tzutil /s "China Standard Time"
-         taskkill /f /im explorer.exe
-         start explorer.exe
-         sleep 5
-         # ls x64\Release
-         echo "Restart Explorer for TimeZone"
-         msbuild ${{env.SOLUTION_FILE_PATH}} /m /p:UseSharedCompilation=true /p:RunCodeAnalysis=false /p:BuildInParallel=true /p:DebugType=None /p:Optimize=true /p:configuration="${{env.BUILD_CONFIGURATION}}" /p:platform="x64" /p:PlatformToolset="v145"
-         # 64 位 Release DLL
-         # msbuild .\setup\vs2019\http_server.setup.sln /m /p:Configuration=Release /p:Platform=x64
-        
-         # 32 位 Release DLL
-         #msbuild .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=Win32
+        msbuild ${{ env.SOLUTION_FILE_PATH }} `
+          /m `
+          /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
+          /p:Platform=${{ env.BUILD_PLATFORM }} `
+          /p:PlatformToolset=v145 `
+          /p:UseSharedCompilation=true `
+          /p:RunCodeAnalysis=false `
+          /p:BuildInParallel=true `
+          /p:DebugType=None `
+          /p:Optimize=true
+
+    # ----------------------------------------------------------------
+    # Steps below run only on push to main (not on pull requests)
+    # ----------------------------------------------------------------
+
+    - name: Verify DLL and create ZIP artifact
+      if: github.event_name == 'push'
+      shell: pwsh
+      run: |
+        $dll = "${{ env.DLL_PATH }}"
+        if (-not (Test-Path $dll)) {
+          Write-Error "Expected DLL not found: $dll"
+          exit 1
+        }
+        # Use an ISO-8601-based UTC timestamp as the release tag (filesystem/tag-safe)
+        $timestamp = (Get-Date -AsUTC).ToString("yyyyMMddTHHmmss")
+        $zipName   = "http_server-$timestamp.zip"
+        Compress-Archive -Path $dll -DestinationPath $zipName
+        Write-Output "RELEASE_TAG=$timestamp"   >> $env:GITHUB_ENV
+        Write-Output "ZIP_NAME=$zipName"         >> $env:GITHUB_ENV
+        Write-Host "Created $zipName (tag: $timestamp)"
+
+    - name: Create GitHub Release and upload asset
+      if: github.event_name == 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
+      run: |
+        # Create the release, then upload the ZIP as its asset
+        gh release create "${{ env.RELEASE_TAG }}" `
+          --title "${{ env.RELEASE_TAG }}" `
+          --notes "Automated build from commit ${{ github.sha }}" `
+          "${{ env.ZIP_NAME }}"
+
+    - name: Retain only the 10 newest releases
+      if: github.event_name == 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
+      run: |
+        # gh release list returns releases newest-first by default; no extra sorting needed.
+        # Limit is 1000 — sufficient for the vast majority of repositories.
+        # If the release count ever exceeds 1000, older releases will not be cleaned up
+        # automatically and will need to be removed manually.
+        $releases = gh release list --limit 1000 --json tagName,createdAt `
+          | ConvertFrom-Json
+
+        $toDelete = $releases | Select-Object -Skip 10
+        foreach ($rel in $toDelete) {
+          $tag = $rel.tagName
+          Write-Host "Deleting release and tag: $tag"
+          gh release delete $tag --yes --cleanup-tag
+        }
 
