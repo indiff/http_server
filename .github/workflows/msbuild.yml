@@ -37,10 +37,10 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         # 64 位 Release DLL
-        nuget restore .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=x64
+        nuget restore .\vs2019\http_server.sln
         
         # 32 位 Release DLL
-        # msbuild .\vs2019\http_server.sln /m /p:Configuration=Release /p:Platform=Win32
+        # msbuild .\vs2019\http_server.sln
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
