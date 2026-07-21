@@ -19,7 +19,7 @@ env:
   # Expected output DLL path.
   # NOTE: The filename contains a space ("HTTP Server.dll") as set by the VS project;
   #       all usages must be quoted accordingly.
-  DLL_PATH: .\vs2019\x64\Release\HTTP Server.dll
+  DLL_PATH: .\vs2019\x64\Release\http_server64.dll
 
 # Needs write access to create/delete releases and upload assets.
 # No broader permissions are required.
@@ -62,7 +62,7 @@ jobs:
       if: github.event_name == 'push'
       shell: pwsh
       run: |
-        $dll = Join-Path $env:GITHUB_WORKSPACE "vs2019\x64\Release\HTTP Server.dll"
+        $dll = Join-Path $env:GITHUB_WORKSPACE "${{ env.DLL_PATH }}"
         if (-not (Test-Path -LiteralPath $dll)) {
             Write-Error "Expected DLL not found: $dll"
             exit 1
